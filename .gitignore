@@ -1,0 +1,16 @@
+# Node
+marcaje_backend/node_modules/
+marcaje_backend/.env
+
+# Flutter
+marcaje_app/.dart_tool/
+marcaje_app/build/
+marcaje_app/.flutter-plugins
+marcaje_app/.flutter-plugins-dependencies
+
+# Admin panel
+admin-panel/
+
+# General
+*.log
+.DS_Store
