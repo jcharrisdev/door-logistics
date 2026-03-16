@@ -61,8 +61,7 @@ class EmpleadoInfo {
 enum AppState { idle, buscando, confirmando, marcando, exito, error }
 
 class MarcajeProvider extends ChangeNotifier {
-  static const String apiUrl = 'http://localhost:3000/api';
-
+static const String apiUrl = 'https://door-logistics.onrender.com/api';
   AppState state = AppState.idle;
   EmpleadoInfo? empleado;
   String? mensaje;
