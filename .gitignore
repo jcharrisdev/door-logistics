@@ -8,8 +8,7 @@ marcaje_app/build/
 marcaje_app/.flutter-plugins
 marcaje_app/.flutter-plugins-dependencies
 
-# Admin panel
-admin-panel/
+
 
 # General
 *.log
