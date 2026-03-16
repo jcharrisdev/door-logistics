@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Door Logistics — Admin</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',sans-serif;background:#F4F6FA;color:#1a1d23;min-height:100vh}
+  :root{--primary:#1A56DB;--primary-light:#EEF2FF;--success:#16A34A;--warning:#EA580C;--danger:#DC2626;--gray:#6B7280}
+
+  /* LOGIN */
+  #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#F4F6FA}
+  .login-card{background:#fff;border-radius:20px;padding:48px 40px;width:360px;box-shadow:0 4px 24px rgba(0,0,0,.08);border:1px solid #E8ECF4}
+  .login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+  .login-logo-icon{width:44px;height:44px;background:var(--primary-light);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+  .login-logo-text{font-size:20px;font-weight:800;letter-spacing:-0.5px}
+  .login-title{font-size:22px;font-weight:800;margin-bottom:6px}
+  .login-sub{font-size:13px;color:var(--gray);margin-bottom:28px}
+  .pin-dots{display:flex;gap:12px;justify-content:center;margin-bottom:24px}
+  .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #CBD2E0;background:transparent;transition:all .2s}
+  .pin-dot.filled{background:var(--primary);border-color:var(--primary)}
+  .keypad{display:grid;grid-template-columns:repeat(3,72px);gap:10px;margin:0 auto;width:fit-content}
+  .key{width:72px;height:60px;border-radius:12px;border:1.5px solid #E8ECF4;background:#fff;font-size:22px;font-weight:700;cursor:pointer;transition:all .15s;color:#1a1d23}
+  .key:hover{background:#F4F6FA;border-color:#CBD2E0}
+  .key:active{transform:scale(.93)}
+  .key.del{font-size:16px;color:var(--gray)}
+  .key.empty{border:none;background:transparent;cursor:default}
+  .login-error{color:var(--danger);font-size:13px;text-align:center;margin-top:12px;min-height:20px}
+
+  /* APP */
+  #app-screen{display:none;min-height:100vh}
+  .topbar{background:#fff;border-bottom:1px solid #E8ECF4;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+  .topbar-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800}
+  .topbar-logo-icon{width:32px;height:32px;background:var(--primary-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .topbar-nav{display:flex;gap:4px}
+  .nav-btn{padding:7px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:transparent;color:var(--gray);transition:all .2s}
+  .nav-btn.active{background:var(--primary-light);color:var(--primary)}
+  .topbar-right{display:flex;align-items:center;gap:12px}
+  .logout-btn{padding:6px 14px;border-radius:8px;border:1px solid #E8ECF4;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--gray)}
+
+  .main{padding:24px;max-width:1200px;margin:0 auto}
+  .page{display:none}
+  .page.active{display:block}
+
+  /* STATS */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .stat-card{background:#fff;border-radius:14px;padding:18px 20px;border:1px solid #E8ECF4}
+  .stat-label{font-size:11px;font-weight:700;color:var(--gray);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+  .stat-val{font-size:32px;font-weight:800;letter-spacing:-1px}
+  .stat-val.blue{color:var(--primary)}
+  .stat-val.green{color:var(--success)}
+  .stat-val.orange{color:var(--warning)}
+  .stat-val.red{color:var(--danger)}
+
+  /* TABLE */
+  .card{background:#fff;border-radius:14px;border:1px solid #E8ECF4;overflow:hidden}
+  .card-header{padding:16px 20px;border-bottom:1px solid #E8ECF4;display:flex;align-items:center;justify-content:space-between}
+  .card-title{font-size:15px;font-weight:700}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:11px;font-weight:700;color:var(--gray);letter-spacing:1px;text-transform:uppercase;padding:10px 16px;text-align:left;border-bottom:1px solid #E8ECF4}
+  td{padding:12px 16px;font-size:13px;border-bottom:1px solid #F4F6FA}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#FAFBFF}
+  .badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;display:inline-block}
+  .badge-in{background:#F0FDF4;color:var(--success)}
+  .badge-out{background:#FFF7ED;color:var(--warning)}
+  .badge-lunch{background:#EFF6FF;color:var(--primary)}
+  .badge-pend{background:#F4F6FA;color:var(--gray)}
+  .badge-active{background:#F0FDF4;color:var(--success)}
+  .badge-inactive{background:#FEF2F2;color:var(--danger)}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--primary-light);color:var(--primary);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+  /* BUTTONS */
+  .btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:#1648C8}
+  .btn-danger{background:#FEF2F2;color:var(--danger);border:1px solid #FECACA}
+  .btn-sm{padding:5px 12px;font-size:12px}
+
+  /* FILTERS */
+  .filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .filter-input{padding:7px 12px;border:1px solid #E8ECF4;border-radius:8px;font-size:13px;outline:none;background:#fff}
+  .filter-input:focus{border-color:var(--primary)}
+
+  /* MODAL */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:20px;padding:32px;width:440px;max-height:90vh;overflow-y:auto}
+  .modal-title{font-size:18px;font-weight:800;margin-bottom:20px}
+  .form-group{margin-bottom:16px}
+  .form-label{font-size:12px;font-weight:600;color:var(--gray);margin-bottom:6px;display:block}
+  .form-input{width:100%;padding:9px 12px;border:1px solid #E8ECF4;border-radius:8px;font-size:14px;outline:none}
+  .form-input:focus{border-color:var(--primary)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+
+  .refresh-btn{padding:6px 14px;border-radius:8px;border:1px solid #E8ECF4;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--gray)}
+  .empty-state{text-align:center;padding:40px;color:var(--gray);font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">🚚</div>
+      <div class="login-logo-text">Door Logistics</div>
+    </div>
+    <div class="login-title">Panel Administrativo</div>
+    <div class="login-sub">Ingresa tu PIN de administrador</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="ld0"></div>
+      <div class="pin-dot" id="ld1"></div>
+      <div class="pin-dot" id="ld2"></div>
+      <div class="pin-dot" id="ld3"></div>
+    </div>
+    <div class="keypad">
+      <button class="key" onclick="lKey('1')">1</button>
+      <button class="key" onclick="lKey('2')">2</button>
+      <button class="key" onclick="lKey('3')">3</button>
+      <button class="key" onclick="lKey('4')">4</button>
+      <button class="key" onclick="lKey('5')">5</button>
+      <button class="key" onclick="lKey('6')">6</button>
+      <button class="key" onclick="lKey('7')">7</button>
+      <button class="key" onclick="lKey('8')">8</button>
+      <button class="key" onclick="lKey('9')">9</button>
+      <button class="key empty"></button>
+      <button class="key" onclick="lKey('0')">0</button>
+      <button class="key del" onclick="lDel()">⌫</button>
+    </div>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-icon">🚚</div>
+      Door Logistics — Admin
+    </div>
+    <div class="topbar-nav">
+      <button class="nav-btn active" onclick="showPage('dashboard',this)">Dashboard</button>
+      <button class="nav-btn" onclick="showPage('empleados',this)">Empleados</button>
+      <button class="nav-btn" onclick="showPage('historial',this)">Historial</button>
+      <button class="nav-btn" onclick="showPage('reportes',this)">Reportes</button>
+    </div>
+    <div class="topbar-right">
+      <span id="admin-name" style="font-size:13px;color:var(--gray)"></span>
+      <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <h1 style="font-size:22px;font-weight:800;letter-spacing:-0.5px">Asistencia de hoy</h1>
+          <p id="dash-date" style="font-size:13px;color:var(--gray)"></p>
+        </div>
+        <button class="refresh-btn" onclick="loadDashboard()">↻ Actualizar</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total empleados</div><div class="stat-val blue" id="stat-total">—</div></div>
+        <div class="stat-card"><div class="stat-label">Presentes</div><div class="stat-val green" id="stat-presentes">—</div></div>
+        <div class="stat-card"><div class="stat-label">Salieron</div><div class="stat-val orange" id="stat-salieron">—</div></div>
+        <div class="stat-card"><div class="stat-label">Ausentes</div><div class="stat-val red" id="stat-ausentes">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Registro del día</div></div>
+        <table>
+          <thead><tr>
+            <th>Empleado</th><th>Entrada</th><th>Salida almuerzo</th>
+            <th>Regreso</th><th>Salida día</th><th>Estado</th>
+          </tr></thead>
+          <tbody id="dash-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EMPLEADOS -->
+    <div class="page" id="page-empleados">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h1 style="font-size:22px;font-weight:800;letter-spacing:-0.5px">Empleados</h1>
+        <button class="btn btn-primary" onclick="showModalNuevo()">+ Nuevo empleado</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Lista de colaboradores</div>
+          <input class="filter-input" placeholder="Buscar..." oninput="filtrarEmpleados(this.value)" style="width:200px">
+        </div>
+        <table>
+          <thead><tr>
+            <th>Empleado</th><th>N° ID</th><th>Cargo</th><th>Departamento</th><th>Estado</th><th>Acciones</th>
+          </tr></thead>
+          <tbody id="emp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="page" id="page-historial">
+      <div style="margin-bottom:20px">
+        <h1 style="font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:16px">Historial de marcajes</h1>
+        <div class="filters">
+          <input type="date" class="filter-input" id="hist-inicio">
+          <input type="date" class="filter-input" id="hist-fin">
+          <button class="btn btn-primary" onclick="loadHistorial()">Buscar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Marcajes</div></div>
+        <table>
+          <thead><tr>
+            <th>Empleado</th><th>N° ID</th><th>Tipo</th><th>Método</th><th>Fecha y hora</th>
+          </tr></thead>
+          <tbody id="hist-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTES -->
+    <div class="page" id="page-reportes">
+      <h1 style="font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:20px">Exportar reportes CSV</h1>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+
+        <div class="card" style="padding:24px">
+          <div style="font-size:16px;font-weight:700;margin-bottom:6px">📅 Reporte del día</div>
+          <div style="font-size:13px;color:var(--gray);margin-bottom:16px">Asistencia completa de un día específico</div>
+          <input type="date" class="filter-input" id="rep-dia" style="width:100%;margin-bottom:12px">
+          <button class="btn btn-primary" style="width:100%" onclick="exportar('dia')">Descargar CSV</button>
+        </div>
+
+        <div class="card" style="padding:24px">
+          <div style="font-size:16px;font-weight:700;margin-bottom:6px">📆 Rango de fechas</div>
+          <div style="font-size:13px;color:var(--gray);margin-bottom:16px">Todos los marcajes en un período</div>
+          <input type="date" class="filter-input" id="rep-inicio" style="width:100%;margin-bottom:8px">
+          <input type="date" class="filter-input" id="rep-fin" style="width:100%;margin-bottom:12px">
+          <button class="btn btn-primary" style="width:100%" onclick="exportar('rango')">Descargar CSV</button>
+        </div>
+
+        <div class="card" style="padding:24px">
+          <div style="font-size:16px;font-weight:700;margin-bottom:6px">👤 Por empleado</div>
+          <div style="font-size:13px;color:var(--gray);margin-bottom:16px">Historial completo de un colaborador</div>
+          <select class="filter-input" id="rep-emp" style="width:100%;margin-bottom:8px"></select>
+          <input type="date" class="filter-input" id="rep-emp-inicio" style="width:100%;margin-bottom:8px">
+          <input type="date" class="filter-input" id="rep-emp-fin" style="width:100%;margin-bottom:12px">
+          <button class="btn btn-primary" style="width:100%" onclick="exportar('empleado')">Descargar CSV</button>
+        </div>
+
+        <div class="card" style="padding:24px">
+          <div style="font-size:16px;font-weight:700;margin-bottom:6px">📊 Resumen mensual</div>
+          <div style="font-size:13px;color:var(--gray);margin-bottom:16px">% asistencia y horas por empleado</div>
+          <select class="filter-input" id="rep-mes" style="width:100%;margin-bottom:8px">
+            <option value="1">Enero</option><option value="2">Febrero</option>
+            <option value="3">Marzo</option><option value="4">Abril</option>
+            <option value="5">Mayo</option><option value="6">Junio</option>
+            <option value="7">Julio</option><option value="8">Agosto</option>
+            <option value="9">Septiembre</option><option value="10">Octubre</option>
+            <option value="11">Noviembre</option><option value="12">Diciembre</option>
+          </select>
+          <input type="number" class="filter-input" id="rep-anio" value="2026" style="width:100%;margin-bottom:12px">
+          <button class="btn btn-primary" style="width:100%" onclick="exportar('mensual')">Descargar CSV</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO/EDITAR EMPLEADO -->
+<div class="modal-bg" id="modal-emp">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Nuevo empleado</div>
+    <input type="hidden" id="emp-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input class="form-input" id="f-nombre" placeholder="Nombre">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Apellido *</label>
+        <input class="form-input" id="f-apellido" placeholder="Apellido">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">N° ID *</label>
+        <input class="form-input" id="f-numero-id" placeholder="Cédula / Pasaporte">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo ID</label>
+        <select class="form-input" id="f-tipo-id">
+          <option value="cedula">Cédula</option>
+          <option value="pasaporte">Pasaporte</option>
+          <option value="colaborador">N° Colaborador</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Cargo</label>
+        <input class="form-input" id="f-cargo" placeholder="Cargo">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Departamento</label>
+        <input class="form-input" id="f-departamento" placeholder="Departamento">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="f-email" type="email" placeholder="correo@empresa.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">PIN (4 dígitos) *</label>
+      <input class="form-input" id="f-pin" type="password" maxlength="4" placeholder="PIN de marcaje">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()" style="border:1px solid #E8ECF4">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEmpleado()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://door-logistics.onrender.com/api';
+let token = '';
+let lPin = '';
+let empleadosData = [];
+
+// ─── LOGIN ────────────────────────────────────────────────────
+function lKey(k) {
+  if (lPin.length >= 4) return;
+  lPin += k;
+  updateLoginDots();
+  if (lPin.length === 4) setTimeout(doLogin, 150);
+}
+function lDel() { lPin = lPin.slice(0,-1); updateLoginDots(); }
+function updateLoginDots() {
+  for (let i=0;i<4;i++) {
+    document.getElementById('ld'+i).classList.toggle('filled', i < lPin.length);
+  }
+}
+async function doLogin() {
+  try {
+    const res = await fetch(`${API}/admin/login-pin`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({pin: lPin})
+    });
+    const data = await res.json();
+    if (data.success) {
+      token = data.token;
+      document.getElementById('admin-name').textContent = data.user.nombre;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      loadDashboard();
+      loadEmpleados();
+      setDefaultDates();
+    } else {
+      document.getElementById('login-error').textContent = data.message || 'PIN incorrecto';
+      lPin = ''; updateLoginDots();
+      setTimeout(() => document.getElementById('login-error').textContent = '', 2000);
+    }
+  } catch(e) {
+    document.getElementById('login-error').textContent = 'Error de conexión';
+    lPin = ''; updateLoginDots();
+  }
+}
+
+function logout() {
+  token = ''; lPin = '';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+  updateLoginDots();
+}
+
+// ─── NAVEGACIÓN ───────────────────────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'historial') loadHistorial();
+}
+
+function setDefaultDates() {
+  const today = new Date().toISOString().split('T')[0];
+  const firstDay = today.slice(0,8)+'01';
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('rep-dia').value = today;
+  document.getElementById('rep-inicio').value = firstDay;
+  document.getElementById('rep-fin').value = today;
+  document.getElementById('rep-emp-inicio').value = firstDay;
+  document.getElementById('rep-emp-fin').value = today;
+  document.getElementById('rep-mes').value = new Date().getMonth()+1;
+  document.getElementById('hist-inicio').value = firstDay;
+  document.getElementById('hist-fin').value = today;
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────
+async function loadDashboard() {
+  const res = await fetch(`${API}/admin/dashboard`, {headers:{Authorization:`Bearer ${token}`}});
+  const data = await res.json();
+  if (!data.success) return;
+
+  const t = data.totales;
+  document.getElementById('stat-total').textContent = t.total_empleados;
+  document.getElementById('stat-presentes').textContent = t.presentes;
+  document.getElementById('stat-salieron').textContent = t.salieron;
+  document.getElementById('stat-ausentes').textContent = t.ausentes;
+
+  const fmt = ts => ts ? new Date(ts).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : '—';
+  const tbody = document.getElementById('dash-tbody');
+  tbody.innerHTML = data.asistencia.map(r => {
+    const initials = r.nombre.split(' ').map(n=>n[0]).join('').slice(0,2);
+    let estado, badgeClass;
+    if (!r.entrada) { estado='Ausente'; badgeClass='badge-pend'; }
+    else if (r.salida_dia) { estado='Completó'; badgeClass='badge-out'; }
+    else if (r.regreso_almuerzo) { estado='Trabajando'; badgeClass='badge-in'; }
+    else if (r.salida_almuerzo) { estado='Almorzando'; badgeClass='badge-lunch'; }
+    else { estado='Presente'; badgeClass='badge-in'; }
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="avatar">${initials}</div>
+        <div><div style="font-weight:600">${r.nombre}</div><div style="font-size:11px;color:var(--gray)">${r.cargo||''}</div></div>
+      </div></td>
+      <td>${fmt(r.entrada)}</td><td>${fmt(r.salida_almuerzo)}</td>
+      <td>${fmt(r.regreso_almuerzo)}</td><td>${fmt(r.salida_dia)}</td>
+      <td><span class="badge ${badgeClass}">${estado}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── EMPLEADOS ────────────────────────────────────────────────
+async function loadEmpleados() {
+  const res = await fetch(`${API}/admin/empleados`, {headers:{Authorization:`Bearer ${token}`}});
+  const data = await res.json();
+  if (!data.success) return;
+  empleadosData = data.data;
+  renderEmpleados(empleadosData);
+  const sel = document.getElementById('rep-emp');
+  sel.innerHTML = data.data.map(e => `<option value="${e.id}">${e.nombre} ${e.apellido}</option>`).join('');
+}
+
+function renderEmpleados(list) {
+  const tbody = document.getElementById('emp-tbody');
+  if (!list.length) { tbody.innerHTML='<tr><td colspan="6"><div class="empty-state">No hay empleados</div></td></tr>'; return; }
+  tbody.innerHTML = list.map(e => {
+    const initials = `${e.nombre[0]}${e.apellido[0]}`;
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="avatar">${initials}</div>
+        <div><div style="font-weight:600">${e.nombre} ${e.apellido}</div><div style="font-size:11px;color:var(--gray)">${e.email||''}</div></div>
+      </div></td>
+      <td style="font-weight:600">${e.numero_id||'—'}</td>
+      <td>${e.cargo||'—'}</td>
+      <td>${e.departamento||'—'}</td>
+      <td><span class="badge ${e.activo?'badge-active':'badge-inactive'}">${e.activo?'Activo':'Inactivo'}</span></td>
+      <td>
+        <button class="btn btn-sm" onclick="showModalEditar(${e.id})" style="border:1px solid #E8ECF4;margin-right:6px">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="toggleEmpleado(${e.id})">${e.activo?'Desactivar':'Activar'}</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filtrarEmpleados(q) {
+  const filtered = empleadosData.filter(e =>
+    `${e.nombre} ${e.apellido} ${e.cargo} ${e.numero_id}`.toLowerCase().includes(q.toLowerCase())
+  );
+  renderEmpleados(filtered);
+}
+
+async function toggleEmpleado(id) {
+  await fetch(`${API}/admin/empleados/${id}/toggle`, {method:'PUT', headers:{Authorization:`Bearer ${token}`}});
+  loadEmpleados();
+}
+
+// ─── MODAL EMPLEADO ───────────────────────────────────────────
+function showModalNuevo() {
+  document.getElementById('modal-title').textContent = 'Nuevo empleado';
+  document.getElementById('emp-id').value = '';
+  ['nombre','apellido','cargo','departamento','email','pin','numero-id'].forEach(f =>
+    document.getElementById('f-'+f).value = '');
+  document.getElementById('f-tipo-id').value = 'cedula';
+  document.getElementById('modal-emp').classList.add('show');
+}
+
+function showModalEditar(id) {
+  const e = empleadosData.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('modal-title').textContent = 'Editar empleado';
+  document.getElementById('emp-id').value = e.id;
+  document.getElementById('f-nombre').value = e.nombre;
+  document.getElementById('f-apellido').value = e.apellido;
+  document.getElementById('f-cargo').value = e.cargo||'';
+  document.getElementById('f-departamento').value = e.departamento||'';
+  document.getElementById('f-email').value = e.email||'';
+  document.getElementById('f-numero-id').value = e.numero_id||'';
+  document.getElementById('f-tipo-id').value = e.tipo_id||'cedula';
+  document.getElementById('f-pin').value = '';
+  document.getElementById('modal-emp').classList.add('show');
+}
+
+function closeModal() { document.getElementById('modal-emp').classList.remove('show'); }
+
+async function guardarEmpleado() {
+  const id = document.getElementById('emp-id').value;
+  const body = {
+    nombre:       document.getElementById('f-nombre').value,
+    apellido:     document.getElementById('f-apellido').value,
+    cargo:        document.getElementById('f-cargo').value,
+    departamento: document.getElementById('f-departamento').value,
+    email:        document.getElementById('f-email').value,
+    pin:          document.getElementById('f-pin').value,
+    numeroId:     document.getElementById('f-numero-id').value,
+    tipoId:       document.getElementById('f-tipo-id').value,
+  };
+  const url = id ? `${API}/admin/empleados/${id}` : `${API}/admin/empleados`;
+  const method = id ? 'PUT' : 'POST';
+  const res = await fetch(url, {
+    method, headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (data.success) { closeModal(); loadEmpleados(); }
+  else alert(data.message);
+}
+
+// ─── HISTORIAL ────────────────────────────────────────────────
+async function loadHistorial() {
+  const inicio = document.getElementById('hist-inicio').value;
+  const fin    = document.getElementById('hist-fin').value;
+  const res = await fetch(`${API}/admin/historial?inicio=${inicio}&fin=${fin}`,
+    {headers:{Authorization:`Bearer ${token}`}});
+  const data = await res.json();
+  if (!data.success) return;
+
+  const tiposLabel = {entrada:'Entrada',salida_almuerzo:'Salida almuerzo',regreso_almuerzo:'Regreso almuerzo',salida_dia:'Salida día'};
+  const tiposBadge = {entrada:'badge-in',salida_almuerzo:'badge-out',regreso_almuerzo:'badge-lunch',salida_dia:'badge-out'};
+  const tbody = document.getElementById('hist-tbody');
+  if (!data.data.length) { tbody.innerHTML='<tr><td colspan="5"><div class="empty-state">No hay marcajes en este período</div></td></tr>'; return; }
+  tbody.innerHTML = data.data.map(r => `<tr>
+    <td style="font-weight:600">${r.nombre}</td>
+    <td>${r.numero_id||'—'}</td>
+    <td><span class="badge ${tiposBadge[r.tipo]||'badge-pend'}">${tiposLabel[r.tipo]||r.tipo}</span></td>
+    <td style="text-transform:capitalize">${r.metodo}</td>
+    <td>${new Date(r.timestamp).toLocaleString('es-ES')}</td>
+  </tr>`).join('');
+}
+
+// ─── REPORTES ─────────────────────────────────────────────────
+function exportar(tipo) {
+  let url;
+  if (tipo === 'dia') url = `${API}/reportes/dia?fecha=${document.getElementById('rep-dia').value}`;
+  else if (tipo === 'rango') url = `${API}/reportes/rango?inicio=${document.getElementById('rep-inicio').value}&fin=${document.getElementById('rep-fin').value}`;
+  else if (tipo === 'empleado') url = `${API}/reportes/empleado/${document.getElementById('rep-emp').value}?inicio=${document.getElementById('rep-emp-inicio').value}&fin=${document.getElementById('rep-emp-fin').value}`;
+  else if (tipo === 'mensual') url = `${API}/reportes/mensual?anio=${document.getElementById('rep-anio').value}&mes=${document.getElementById('rep-mes').value}`;
+
+  fetch(url, {headers:{Authorization:`Bearer ${token}`}})
+    .then(r => r.blob())
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `reporte_${tipo}_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+    });
+}
+</script>
+</body>
+</html>
