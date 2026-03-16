@@ -75,8 +75,7 @@ static const String apiUrl = 'https://door-logistics.onrender.com/api';
 
     try {
       final res = await http.post(
-        Uri.parse('http://localhost:3000/api/asistencia/buscar-empleado'),
-        headers: {'Content-Type': 'application/json'},
+Uri.parse('https://door-logistics.onrender.com/api/asistencia/buscar-empleado'),       headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'numeroId': numeroId}),
       );
 
@@ -119,7 +118,7 @@ static const String apiUrl = 'https://door-logistics.onrender.com/api';
 
     try {
       final res = await http.post(
-        Uri.parse('http://localhost:3000/api/asistencia/marcar'),
+        Uri.parse('https://door-logistics.onrender.com/api/asistencia/marcar'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'empleadoId': empleado!.id,
@@ -153,7 +152,7 @@ static const String apiUrl = 'https://door-logistics.onrender.com/api';
 
     try {
       final res = await http.post(
-        Uri.parse('http://localhost:3000/api/asistencia/marcar'),
+        Uri.parse('https://door-logistics.onrender.com/api/asistencia/marcar'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'empleadoId': empleado?.id,
@@ -652,7 +651,7 @@ extension on MarcajeProvider {
     notifyListeners();
     try {
       final res = await http.post(
-        Uri.parse('http://localhost:3000/api/asistencia/buscar-empleado'),
+        Uri.parse('https://door-logistics.onrender.com/api/asistencia/buscar-empleado'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'qrToken': qrToken}),
       );
